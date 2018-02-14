@@ -1,0 +1,19 @@
+#!/bin/bash
+echo "Extracting domain list..."
+lsdom -a > alldomainslist
+echo "Extracting certificate list..."
+lrcert -a > allrealcerts
+echo "Finding domains to install self signed certificates"
+cut -d":" -f2 alldomainslist > alldomainslist2
+cut -d":" -f2 allrealcerts > allrealcerts2
+cat alldomainslist2 | sort | uniq > alldomainslist
+cat allrealcerts2 | sort | uniq > allrealcerts
+cat allrealcerts alldomainslist | sort | uniq -u > toinstall
+rm -f alldomainslist alldomainslist2 allrealcerts allrealcerts2
+echo "Starting self signed script install.."
+trap "echo Script ended; exit;" SIGINT SIGTERM
+while read p; do
+    ssci $p
+done <toinstall
+rm -f toinstall
+echo "Self signed mass install script finished!"
